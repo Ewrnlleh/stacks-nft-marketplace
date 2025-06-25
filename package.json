@@ -1,9 +1,10 @@
 {
   "name": "stacks-nft-marketplace",
   "version": "0.1.0",
-  "private": true,
-  "scripts": {
+  "private": true,  "scripts": {
     "dev": "next dev",
+    "dev:win": "set NODE_OPTIONS=--max-old-space-size=4096 && next dev --port 3003",
+    "dev:clean": "rmdir /s /q .next 2>nul && next dev --port 3003",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

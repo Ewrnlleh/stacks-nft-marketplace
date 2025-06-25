@@ -193,6 +193,11 @@ NEXT_PUBLIC_APP_DESCRIPTION=A decentralized NFT marketplace
 
 ## 📚 Documentation
 
+### Project Guides
+- [**Wallet Error Handling Guide**](WALLET_ERROR_GUIDE.md) - Understanding user rejections and transaction errors
+- [**Demo Guide**](DEMO.md) - Complete feature walkthrough
+- [**Deployment Guide**](DEPLOYMENT.md) - Contract deployment instructions
+
 ### API Reference
 - [Stacks Documentation](https://docs.stacks.co/)
 - [Clarity Language Reference](https://docs.stacks.co/clarity/)

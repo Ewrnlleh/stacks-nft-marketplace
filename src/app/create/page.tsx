@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useWallet } from '@/components/wallet-provider';
+import { useToast } from '@/components/toast-provider';
 import { mintNFT } from '@/lib/stacks';
 import { Upload, Image as ImageIcon, Sparkles, Info } from 'lucide-react';
 
 export default function CreatePage() {
   const { isConnected, address } = useWallet();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -60,9 +62,7 @@ export default function CreatePage() {
     }
 
     setIsMinting(true);
-    
-    try {
-      const result = await mintNFT(
+      try {      await mintNFT(
         formData.name,
         formData.description,
         formData.image,
@@ -70,7 +70,10 @@ export default function CreatePage() {
         address
       );
       
-      alert('NFT minted successfully! Transaction ID: ' + result.txid);
+      toast.success(
+        'NFT Minted Successfully!', 
+        'Your NFT has been created on the Stacks blockchain and will appear shortly.'
+      );
       
       // Reset form
       setFormData({
@@ -79,10 +82,21 @@ export default function CreatePage() {
         image: '',
         royaltyPercentage: 5,
       });
-      setPreview(null);
-    } catch (error) {
+      setPreview(null);    } catch (error: any) {
       console.error('Minting failed:', error);
-      alert('Minting failed. Please try again.');
+        // Handle specific error types with user-friendly messages
+      if (error.message && (error.message.includes('User rejected') || error.message.includes('user rejected'))) {
+        // User cancelled - this is normal behavior, no error UI needed
+        console.log('User cancelled the transaction');
+      } else if (error.message && error.message.includes('JsonRpcError')) {
+        toast.warning('Transaction Cancelled', 'Please try again if you want to mint this NFT.');
+      } else if (error.message && error.message.includes('Insufficient funds')) {
+        toast.error('Insufficient Funds', 'Please ensure you have enough STX tokens in your wallet.');
+      } else if (error.message && error.message.includes('network')) {
+        toast.error('Network Error', 'Please check your internet connection and try again.');
+      } else {
+        toast.error('Minting Failed', 'Please check your wallet connection and try again.');
+      }
     } finally {
       setIsMinting(false);
     }

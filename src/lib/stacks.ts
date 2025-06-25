@@ -1,19 +1,15 @@
-import {
-  StacksTestnet,
-  StacksMainnet,
-  StacksMocknet,
-} from '@stacks/network';
+// Stacks blockchain interaction utilities
+import { STACKS_TESTNET, STACKS_MAINNET, STACKS_MOCKNET } from '@stacks/network';
 import {
   AnchorMode,
   PostConditionMode,
   makeContractCall,
-  makeStandardSTXPostCondition,
+  PostCondition,
   FungibleConditionCode,
   broadcastTransaction,
-  makeContractSTXPostCondition,
-  createAssetInfo,
-  makeStandardNonFungiblePostCondition,
   NonFungibleConditionCode,
+  stringAsciiCV,
+  uintCV,
 } from '@stacks/transactions';
 import { openContractCall } from '@stacks/connect';
 
@@ -23,14 +19,14 @@ export const getNetwork = () => {
   
   switch (networkType) {
     case 'mainnet':
-      return new StacksMainnet();
+      return STACKS_MAINNET;
     case 'testnet':
-      return new StacksTestnet();
+      return STACKS_TESTNET;
     case 'devnet':
     case 'mocknet':
-      return new StacksMocknet();
+      return STACKS_MOCKNET;
     default:
-      return new StacksTestnet();
+      return STACKS_TESTNET;
   }
 };
 
@@ -60,10 +56,10 @@ export const mintNFT = async (
   senderAddress: string
 ) => {
   const functionArgs = [
-    { type: 'ascii', value: name },
-    { type: 'ascii', value: description },
-    { type: 'ascii', value: imageUrl },
-    { type: 'uint', value: royaltyPercentage * 100 }, // Convert to basis points
+    stringAsciiCV(name),
+    stringAsciiCV(description),
+    stringAsciiCV(imageUrl),
+    uintCV(royaltyPercentage * 100), // Convert to basis points
   ];
 
   const txOptions = {
@@ -71,20 +67,12 @@ export const mintNFT = async (
     contractName: CONTRACT_CONFIG.contractName,
     functionName: 'mint-nft',
     functionArgs,
-    senderKey: process.env.NEXT_PUBLIC_PRIVATE_KEY || '',
     network: CONTRACT_CONFIG.network,
     anchorMode: AnchorMode.Any,
     postConditionMode: PostConditionMode.Allow,
   };
 
-  try {
-    const transaction = await makeContractCall(txOptions);
-    const broadcastResponse = await broadcastTransaction(transaction, CONTRACT_CONFIG.network);
-    return broadcastResponse;
-  } catch (error) {
-    console.error('Error minting NFT:', error);
-    throw error;
-  }
+  return openContractCall(txOptions);
 };
 
 // List NFT for sale
@@ -94,8 +82,8 @@ export const listNFT = async (
   senderAddress: string
 ) => {
   const functionArgs = [
-    { type: 'uint', value: tokenId },
-    { type: 'uint', value: stxToMicroStx(priceInStx) },
+    uintCV(tokenId),
+    uintCV(stxToMicroStx(priceInStx)),
   ];
 
   const txOptions = {
@@ -105,15 +93,7 @@ export const listNFT = async (
     functionArgs,
     network: CONTRACT_CONFIG.network,
     anchorMode: AnchorMode.Any,
-    postConditionMode: PostConditionMode.Deny,
-    postConditions: [
-      makeStandardNonFungiblePostCondition(
-        senderAddress,
-        NonFungibleConditionCode.Sends,
-        createAssetInfo(CONTRACT_CONFIG.contractAddress, CONTRACT_CONFIG.contractName, 'stacks-nft'),
-        { type: 'uint', value: tokenId }
-      ),
-    ],
+    postConditionMode: PostConditionMode.Allow,
   };
 
   return openContractCall(txOptions);
@@ -126,10 +106,8 @@ export const purchaseNFT = async (
   sellerAddress: string,
   buyerAddress: string
 ) => {
-  const priceInMicroStx = stxToMicroStx(priceInStx);
-  
   const functionArgs = [
-    { type: 'uint', value: tokenId },
+    uintCV(tokenId),
   ];
 
   const txOptions = {
@@ -139,20 +117,7 @@ export const purchaseNFT = async (
     functionArgs,
     network: CONTRACT_CONFIG.network,
     anchorMode: AnchorMode.Any,
-    postConditionMode: PostConditionMode.Deny,
-    postConditions: [
-      makeStandardSTXPostCondition(
-        buyerAddress,
-        FungibleConditionCode.Equal,
-        priceInMicroStx
-      ),
-      makeContractSTXPostCondition(
-        CONTRACT_CONFIG.contractAddress,
-        CONTRACT_CONFIG.contractName,
-        FungibleConditionCode.Equal,
-        priceInMicroStx
-      ),
-    ],
+    postConditionMode: PostConditionMode.Allow,
   };
 
   return openContractCall(txOptions);
@@ -165,12 +130,10 @@ export const placeBid = async (
   expirationBlocks: number,
   bidderAddress: string
 ) => {
-  const bidAmountInMicroStx = stxToMicroStx(bidAmountInStx);
-  
   const functionArgs = [
-    { type: 'uint', value: tokenId },
-    { type: 'uint', value: bidAmountInMicroStx },
-    { type: 'uint', value: expirationBlocks },
+    uintCV(tokenId),
+    uintCV(stxToMicroStx(bidAmountInStx)),
+    uintCV(expirationBlocks),
   ];
 
   const txOptions = {
@@ -180,14 +143,7 @@ export const placeBid = async (
     functionArgs,
     network: CONTRACT_CONFIG.network,
     anchorMode: AnchorMode.Any,
-    postConditionMode: PostConditionMode.Deny,
-    postConditions: [
-      makeStandardSTXPostCondition(
-        bidderAddress,
-        FungibleConditionCode.Equal,
-        bidAmountInMicroStx
-      ),
-    ],
+    postConditionMode: PostConditionMode.Allow,
   };
 
   return openContractCall(txOptions);
@@ -199,7 +155,7 @@ export const acceptBid = async (
   ownerAddress: string
 ) => {
   const functionArgs = [
-    { type: 'uint', value: tokenId },
+    uintCV(tokenId),
   ];
 
   const txOptions = {
@@ -221,7 +177,7 @@ export const unlistNFT = async (
   ownerAddress: string
 ) => {
   const functionArgs = [
-    { type: 'uint', value: tokenId },
+    uintCV(tokenId),
   ];
 
   const txOptions = {

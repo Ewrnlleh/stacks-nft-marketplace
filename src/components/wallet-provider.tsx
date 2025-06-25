@@ -11,6 +11,7 @@ interface WalletContextType {
   connect: () => void;
   disconnect: () => void;
   address: string | null;
+  isClient: boolean;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -19,11 +20,15 @@ const appConfig = new AppConfig(['store_write', 'publish_data']);
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [userSession, setUserSession] = useState<UserSession | null>(null);
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<any>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // Set isClient to true after component mounts to prevent hydration mismatch
+    setIsClient(true);
+    
     const session = new UserSession({ appConfig });
     setUserSession(session);
 
@@ -40,21 +45,33 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       setAddress(userData.profile.stxAddress.testnet);
     }
   }, []);
-
   const connect = () => {
     if (!userSession) return;
 
-    showConnect({
-      appDetails: {
-        name: 'Stacks NFT Marketplace',
-        icon: '/icon.png',
-      },
-      redirectTo: '/',
-      onFinish: () => {
-        window.location.reload();
-      },
-      userSession,
-    });
+    try {
+      showConnect({
+        appDetails: {
+          name: 'Stacks NFT Marketplace',
+          icon: '/icon.png',
+        },
+        redirectTo: '/',
+        onFinish: () => {
+          window.location.reload();
+        },
+        onCancel: () => {
+          // User cancelled the connection request
+          console.log('User cancelled wallet connection');
+        },
+        userSession,
+      });
+    } catch (error: any) {
+      // Handle user rejection or other errors gracefully
+      if (error.message && error.message.includes('User rejected')) {
+        console.log('User rejected wallet connection');
+      } else {
+        console.error('Error connecting wallet:', error);
+      }
+    }
   };
 
   const disconnect = () => {
@@ -65,7 +82,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setIsConnected(false);
     setAddress(null);
   };
-
   const value = {
     userSession,
     userData,
@@ -73,6 +89,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     connect,
     disconnect,
     address,
+    isClient,
   };
 
   return (

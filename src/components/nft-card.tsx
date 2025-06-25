@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { NFT } from '@/types';
 import { formatAddress } from '@/lib/stacks';
 import { useWallet } from './wallet-provider';
+import { useToast } from './toast-provider';
 import { purchaseNFT } from '@/lib/stacks';
 import { Heart, Eye, DollarSign, User } from 'lucide-react';
 import { useState } from 'react';
@@ -15,22 +16,31 @@ interface NFTCardProps {
 
 export function NFTCard({ nft }: NFTCardProps) {
   const { isConnected, address } = useWallet();
+  const toast = useToast();
   const [isLiked, setIsLiked] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
 
   const isOwner = address === nft.owner;
   const canPurchase = isConnected && !isOwner && nft.isListed;
-
   const handlePurchase = async () => {
-    if (!canPurchase || !nft.price) return;
-
-    setIsPurchasing(true);
+    if (!canPurchase || !nft.price) return;    setIsPurchasing(true);
     try {
       await purchaseNFT(nft.tokenId, nft.price, nft.owner, address!);
-      alert('Purchase initiated! Please confirm the transaction in your wallet.');
-    } catch (error) {
+      toast.success('Purchase Initiated!', 'Please confirm the transaction in your wallet.');
+    } catch (error: any) {
       console.error('Purchase failed:', error);
-      alert('Purchase failed. Please try again.');
+      
+      // Handle specific error types with user-friendly messages
+      if (error.message && (error.message.includes('User rejected') || error.message.includes('user rejected'))) {
+        // User cancelled - this is normal behavior, no error UI needed
+        console.log('User cancelled the purchase transaction');
+      } else if (error.message && error.message.includes('Insufficient funds')) {
+        toast.error('Insufficient Funds', 'Please ensure you have enough STX tokens.');
+      } else if (error.message && error.message.includes('network')) {
+        toast.error('Network Error', 'Please check your connection and try again.');
+      } else {
+        toast.error('Purchase Failed', 'Please try again.');
+      }
     } finally {
       setIsPurchasing(false);
     }

@@ -6,7 +6,7 @@ import { Wallet, LogOut, Plus, Search } from 'lucide-react';
 import Link from 'next/link';
 
 export function Navbar() {
-  const { isConnected, address, connect, disconnect } = useWallet();
+  const { isConnected, address, connect, disconnect, isClient } = useWallet();
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -56,7 +56,13 @@ export function Navbar() {
 
           {/* Wallet Connection */}
           <div className="flex items-center space-x-4">
-            {isConnected ? (
+            {!isClient ? (
+              // Show a loading state during hydration to prevent mismatch
+              <div className="btn-primary flex items-center space-x-2 opacity-50">
+                <Wallet className="w-4 h-4" />
+                <span>Loading...</span>
+              </div>
+            ) : isConnected ? (
               <div className="flex items-center space-x-4">
                 <Link 
                   href="/create" 
