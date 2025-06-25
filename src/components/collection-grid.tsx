@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Collection } from '@/types';
-import { CollectionCard } from './collection-card';
+import { CollectionCard } from '@/components/collection-card';
 import { Loader2, Package } from 'lucide-react';
 
 export function CollectionGrid() {

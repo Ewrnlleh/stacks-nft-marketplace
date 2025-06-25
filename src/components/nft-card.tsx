@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { NFT } from '@/types';
-import { formatAddress, formatSTX } from '@/lib/stacks';
+import { formatAddress } from '@/lib/stacks';
 import { useWallet } from './wallet-provider';
 import { purchaseNFT } from '@/lib/stacks';
 import { Heart, Eye, DollarSign, User } from 'lucide-react';
@@ -27,7 +27,6 @@ export function NFTCard({ nft }: NFTCardProps) {
     setIsPurchasing(true);
     try {
       await purchaseNFT(nft.tokenId, nft.price, nft.owner, address!);
-      // In a real app, you'd refresh the NFT data or show a success message
       alert('Purchase initiated! Please confirm the transaction in your wallet.');
     } catch (error) {
       console.error('Purchase failed:', error);

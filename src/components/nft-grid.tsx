@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { NFTCard } from './nft-card';
+import { NFTCard } from '@/components/nft-card';
 import { NFT } from '@/types';
 import { Loader2, Package } from 'lucide-react';
 
