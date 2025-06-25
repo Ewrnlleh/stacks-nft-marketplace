@@ -1,0 +1,36 @@
+{
+  "name": "stacks-nft-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "deploy:testnet": "echo 'Deploy to Stacks testnet'",
+    "deploy:mainnet": "echo 'Deploy to Stacks mainnet'"
+  },
+  "dependencies": {
+    "@stacks/auth": "^7.1.0",
+    "@stacks/blockchain-api-client": "^8.11.2",
+    "@stacks/connect": "^8.1.9",
+    "@stacks/network": "^7.0.2",
+    "@stacks/transactions": "^7.1.0",
+    "autoprefixer": "^10.4.21",
+    "lucide-react": "^0.523.0",
+    "next": "15.3.4",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "15.3.4",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
